@@ -15,6 +15,7 @@ export interface Team {
 
 interface StandingsTableProps {
   teams: Team[];
+  seasonNumber?: number;
 }
 
 const calculatePoints = (wins: number, overtimeLosses: number): number => {
@@ -35,7 +36,7 @@ const getRowClassName = (position: number): string => {
   return 'hover:bg-muted/50';
 };
 
-export default function StandingsTable({ teams }: StandingsTableProps) {
+export default function StandingsTable({ teams, seasonNumber = 4 }: StandingsTableProps) {
   const sortedTeams = [...teams].sort((a, b) => {
     const pointsA = calculatePoints(a.wins, a.overtimeLosses);
     const pointsB = calculatePoints(b.wins, b.overtimeLosses);
@@ -54,7 +55,7 @@ export default function StandingsTable({ teams }: StandingsTableProps) {
     <Card className="overflow-hidden border-border/50 bg-card/95 backdrop-blur">
       <div className="p-6 border-b border-border/50">
         <h2 className="text-3xl font-bold tracking-tight">Турнирная таблица</h2>
-        <p className="text-muted-foreground mt-1">Сезон 2024/2025</p>
+        <p className="text-muted-foreground mt-1">Сезон {seasonNumber}</p>
       </div>
       
       <div className="overflow-x-auto">

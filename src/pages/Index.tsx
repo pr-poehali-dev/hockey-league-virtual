@@ -2,6 +2,8 @@ import { useState } from 'react';
 import StandingsTable, { Team } from '@/components/StandingsTable';
 import MatchSchedule, { Match } from '@/components/MatchSchedule';
 import AdminPanel from '@/components/AdminPanel';
+import AdminLogin from '@/components/AdminLogin';
+import FullAdminPanel from '@/components/FullAdminPanel';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
@@ -73,6 +75,10 @@ export default function Index() {
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showFullAdmin, setShowFullAdmin] = useState(false);
+  const [seasonNumber, setSeasonNumber] = useState(4);
 
   const handleEditResult = (matchId: string) => {
     const match = matches.find(m => m.id === matchId);
@@ -142,6 +148,29 @@ export default function Index() {
     setTeams(updatedTeams);
   };
 
+  const handleUpdateTeam = (teamId: string, updates: Partial<Team>) => {
+    setTeams(teams.map(team => team.id === teamId ? { ...team, ...updates } : team));
+  };
+
+  const handleUpdateMatch = (matchId: string, updates: Partial<Match>) => {
+    setMatches(matches.map(match => match.id === matchId ? { ...match, ...updates } : match));
+  };
+
+  const handleAddMatch = (match: Match) => {
+    setMatches([...matches, match]);
+  };
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    setShowLogin(false);
+    setShowFullAdmin(true);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setShowFullAdmin(false);
+  };
+
   return (
     <div className="min-h-screen bg-background dark">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -154,10 +183,21 @@ export default function Index() {
               </h1>
               <p className="text-muted-foreground text-lg">Виртуальная лига в игре Puck</p>
             </div>
-            <Button size="lg" className="gap-2">
-              <Icon name="Users" size={20} />
-              Статистика игроков
-            </Button>
+            <div className="flex gap-2">
+              <Button size="lg" className="gap-2">
+                <Icon name="Users" size={20} />
+                Статистика игроков
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => setShowLogin(true)}
+              >
+                <Icon name="Settings" size={20} />
+                Админ-панель
+              </Button>
+            </div>
           </div>
         </header>
 
@@ -174,7 +214,7 @@ export default function Index() {
           </TabsList>
 
           <TabsContent value="standings" className="animate-fade-in">
-            <StandingsTable teams={teams} />
+            <StandingsTable teams={teams} seasonNumber={seasonNumber} />
           </TabsContent>
 
           <TabsContent value="schedule" className="animate-fade-in">
@@ -193,6 +233,23 @@ export default function Index() {
         }}
         onSave={handleSaveResult}
       />
+
+      {showLogin && !isAuthenticated && <AdminLogin onLogin={handleLogin} />}
+
+      {isAuthenticated && (
+        <FullAdminPanel
+          isOpen={showFullAdmin}
+          onClose={() => setShowFullAdmin(false)}
+          teams={teams}
+          matches={matches}
+          onUpdateTeam={handleUpdateTeam}
+          onUpdateMatch={handleUpdateMatch}
+          onAddMatch={handleAddMatch}
+          onLogout={handleLogout}
+          seasonNumber={seasonNumber}
+          onUpdateSeason={setSeasonNumber}
+        />
+      )}
     </div>
   );
 }
